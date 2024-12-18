@@ -1,0 +1,73 @@
+# https://blog.logrocket.com/containerized-development-nestjs-docker/
+version: '3.7'
+
+services:
+  ecoloop-server:
+    container_name: ecoloop-server-onprem
+    image: ${ECOLOOP_SERVER_IMAGE}
+    ports:
+      - ${SERVER_PORT}:9080
+      - 9229:9229
+    command: >
+      sh -c "yarn install 
+      && npx prisma migrate deploy 
+      && yarn start:prod"
+    env_file:
+      - .env.docker
+    environment:
+      STORAGE_LOCATION_ROOT: ${STORAGE_LOCATION_ROOT}
+      # IMPORT_FILE_PATTERN: ${IMPORT_FILE_PATTERN}
+      # IMPORT_FILE_PATTERN_EXCL: ${IMPORT_FILE_PATTERN_EXCL}
+
+    networks:
+      - webnet
+    depends_on:
+      - postgres
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: postgres-onprem
+    networks:
+      - webnet
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      # POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C.UTF-8 --lc-ctype=C.UTF-8' COMMENTED OUT AS prisma db:migrate is failing (maybe since pg 15 ??)
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+      PG_DATA: /var/lib/postgresql/data
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pgdata_onprem:/var/lib/postgresql/data
+  ecoloop-web:
+    container_name: ecoloop-web
+    image: ${ECOLOOP_WEB_IMAGE}
+    env_file:
+      - .env.docker
+    environment:
+      AUTH0_CLIENT_SECRET: ${AUTH0_CLIENT_SECRET}
+      BAPI_BASE_URL: ${BAPI_BASE_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NODE_ENV: ${NODE_ENV}
+      PORT: 80
+    restart: always
+    networks:
+      - webnet
+    ports:
+      - ${ECOLOOP_WEB_EXPOSE_PORT}:3000
+
+networks:
+  webnet:
+    driver: bridge
+
+volumes:
+  pgdata_onprem:
