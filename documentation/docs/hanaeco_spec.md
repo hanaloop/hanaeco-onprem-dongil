@@ -28,7 +28,7 @@ Initially a [Auth0](https://auth0.com/) will be setup until local auth is provid
 
 #### Configuration
 
-The docker compose yaml file is in a private GitLab repository:
+The docker compose yaml file is in a private Github repository:
 
 ```
 git clone git@gitlab.com:hanaloop/projects/hanaeco-onprem-dongil.git
@@ -39,7 +39,7 @@ One the repo is cloned, you can modify the files accordingly.
 
 
 The deployment configuration is defined across multiple files:
-1. `scripts/.env.docker-compose-win` - Configuration for docker deployment, including docker images, ports, etc.
+1. `scripts/.env.docker-compose-onprem` - Configuration for docker deployment, including docker images, ports, etc.
 2. `scripts/.env.docker-server` - Configuration for the API server application
 2. `scripts/.env.docker-web`  - Configuration for the web application 
 
@@ -62,7 +62,7 @@ Where
 Environments to configure in `.env.docker-web`
 ```
 NEXTAUTH_URL=<https://your.publicdomain.net>
-AUTH0_CLIENT_ID
+AUTH0_CLIENT_ID=<Auth0 IdP's client ID>
 AUTH0_CLIENT_SECRET=<Auth0 IdP's client secret>
 ```
 Where
@@ -102,7 +102,7 @@ Once logged in for the first time, you can and access the database using postgre
 
 
 ```sh
-sudo docker exec -it postgres-onprem sh
+docker exec -it postgres-onprem sh
 psql -h localhost -p 5432 -d ecoloop-onprem -U ecoloop
 ```
 
@@ -127,7 +127,7 @@ https://{hostname}/en/admin/users
 
     check if the variables are correcly set:
     ```sh
-    docker exec -it ecoloop-web-onprem printenv
+    docker exec -it ecoloop-server-onprem printenv
     ```
 
     Check if services can be accessed from the container
@@ -136,8 +136,26 @@ https://{hostname}/en/admin/users
     [docker-container] curl ecoloop-server-onprem:3000/info
     ```
 
+    ```sh
+    docker exec -it ecoloop-server-onprem ash
+    [docker-container] curl ecoloop-server-onprem:3000/info
+    ```
+
 - To see the logs of a container
     
     ```
     docker logs --follow ecoloop-server-onprem
+    ```
+
+- To see the networks
+    
+    ```
+    docker exec -it ecoloop-web-onprem ping ecoloop-server-onprem
+    
+    docker exec -it ecoloop-web-onprem ping ecoloop-server-onprem
+
+    docker exec -it ecoloop-web-onprem ping ecoloop-ml-onprem
+
+    docker network ls
+    docker network inspect haneco_onprem_app_network
     ```

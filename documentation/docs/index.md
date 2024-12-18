@@ -18,6 +18,7 @@ Modify `/scripts/.env.docker-compose-onprem` environment
 - `ECOLOOP_SERVER_IMAGE` The Hanaeco backend server docker image name with the proper version
 - `STORAGE_LOCATION_ROOT` The absolute path where the updated file will be stored (need full write access)
 - `ECOLOOP_ML_IMAGE`  The Hanaeco machine learning docker image
+- `OPENAI_API_KEY` The OpenAI key for chat
 
 
 Other configuration will not require to be modified, but for explanation purpose:

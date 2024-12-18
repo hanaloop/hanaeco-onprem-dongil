@@ -1,5 +1,5 @@
 # THIS IS THE ONE USED
-# https://blog.logrocket.com/containerized-development-nestjs-docker/
+# NOTE: Those values expressed as variables - ${VARNAME} - are set from OS env or from .env.docker-compose-onprem
 version: '3.7'
 
 services:
@@ -10,7 +10,7 @@ services:
       - ecoloop-web
       - ecoloop-server
     networks:
-      - webnet
+      - app_network
     ports:
       - "9901:9901"
       - "${PROXY_EXPOSE_PORT}:80"
@@ -32,14 +32,18 @@ services:
       - .env.docker-server
     environment:
       # PORT: 80
+      NODE_ENV: ${SERVER_NODE_ENV}
+      CIPHER_KEY: ${CIPHER_KEY}
       STORAGE_LOCATION_ROOT: ${STORAGE_LOCATION_ROOT}
+      LLM_OPENAPI_API_KEY: ${OPENAI_API_KEY}
       # IMPORT_FILE_PATTERN: ${IMPORT_FILE_PATTERN}
       # IMPORT_FILE_PATTERN_EXCL: ${IMPORT_FILE_PATTERN_EXCL}
     networks:
-      - webnet
+      - app_network
     depends_on:
       - postgres
       - ecoloop-ml
+  
   postgres:
     image: pgvector/pgvector:pg15
     container_name: postgres-onprem
@@ -50,18 +54,20 @@ services:
       POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
       PG_DATA: /var/lib/postgresql/data
     networks:
-      - webnet
+      - app_network
     ports:
       - 5432:5432
     volumes:
       - pgdata_onprem:/var/lib/postgresql/data
+  
   ecoloop-ml:
     image: hanalooper/ecoloop-ml:latest
     container_name: ecoloop-ml-onprem
     ports:
       - ${ECOLOOP_ML_EXPOSE_PORT}:80
     networks:
-      - webnet
+      - app_network
+
   ecoloop-web:
     container_name: ecoloop-web-onprem
     image: ${ECOLOOP_WEB_IMAGE}
@@ -75,11 +81,13 @@ services:
     #   NODE_ENV: ${NODE_ENV}
 
     networks:
-      - webnet
+      - app_network
     ports:
       - ${ECOLOOP_WEB_EXPOSE_PORT}:80
 
 networks:
-  webnet:
+  app_network:
+    driver: bridge
+
 volumes:
   pgdata_onprem:
