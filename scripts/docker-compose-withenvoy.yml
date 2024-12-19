@@ -35,7 +35,7 @@ services:
       NODE_ENV: ${SERVER_NODE_ENV}
       CIPHER_KEY: ${CIPHER_KEY}
       STORAGE_LOCATION_ROOT: ${STORAGE_LOCATION_ROOT}
-      LLM_OPENAPI_API_KEY: ${OPENAI_API_KEY}
+      HL_DISABLE_GENAI: true
       # IMPORT_FILE_PATTERN: ${IMPORT_FILE_PATTERN}
       # IMPORT_FILE_PATTERN_EXCL: ${IMPORT_FILE_PATTERN_EXCL}
     networks:
@@ -58,7 +58,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - pgdata_onprem:/var/lib/postgresql/data
+      - ${DBDATA_LOCATION_ROOT}:/var/lib/postgresql/data
   
   ecoloop-ml:
     image: hanalooper/ecoloop-ml:latest
